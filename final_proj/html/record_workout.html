@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Goals</title>
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-right: 20px;
+                margin-top: 40px;
+                font-weight:bold;
+            }
+
+            label {
+                font-size: 23px;
+            }
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            #workout_date, #workout_length, .machine_notes, .machine_id {
+
+                width: 35%;
+                padding-right: 30px;
+                padding-top: 11px;
+                padding-bottom:11px;
+                display: inline-block;
+                font-size: 18px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+                color:black;
+                margin-top: 8px;
+
+            }
+
+            .machine_notes {
+
+                height: 250px;
+
+            }
+
+        </style>
+    </head>
+
+
+    <body>
+
+        <label for="workout_date">Enter Workout Date (yyyy-mm-dd) (Leave blank for current date):</label><br>
+        <input for="workout_date" type="date" id="workout_date" name="workout_date"><br><br>
+
+        <label for="workout_length">Enter workout length in minutes:</label><br>
+        <input for="workout_length" type="number" id="workout_length" name="workout_length"><br><br>
+
+        <span id="equipment_usage"></span>
+
+        <button id="add_equipment">Add Equipment</button>
+        <button id="save_workout_session">Save Workout Notes</button>
+
+        <script>
+
+            let machinesUsed = 0
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                document.getElementById('save_workout_session').addEventListener('click', sendWorkout)
+                document.getElementById('add_equipment').addEventListener('click', addMachineUsedElements)
+
+            })
+
+            function addMachineUsedElements() {
+
+                let machineLabel = document.createElement('label')
+                machineLabel.innerHTML = "Enter Machine ID: "
+
+                let machineInput = document.createElement('input')
+                machineInput.id = machinesUsed + "_machine"
+                machineInput.className = "machine_id"
+                machineInput.type = "number"
+
+                let machineNotes = document.createElement('textarea')
+                machineNotes.id = machinesUsed  + "_machine_notes"
+                machineNotes.placeholder = "Enter sets and reps here..."
+                machineNotes.className = "machine_notes"
+
+                machinesUsed++
+
+                document.getElementById('equipment_usage').appendChild(machineLabel)
+                document.getElementById('equipment_usage').appendChild(document.createElement('br'))
+                document.getElementById('equipment_usage').appendChild(machineInput)
+                document.getElementById('equipment_usage').appendChild(document.createElement('br'))
+                document.getElementById('equipment_usage').appendChild(document.createElement('br'))
+                document.getElementById('equipment_usage').appendChild(machineNotes)
+                document.getElementById('equipment_usage').appendChild(document.createElement('br'))
+                document.getElementById('equipment_usage').appendChild(document.createElement('br'))
+
+            }
+
+            function sendWorkout() {
+
+                let workout_obj = {
+
+                    'workout_date': document.getElementById('workout_date').value,
+                    'workout_length': document.getElementById('workout_length').value
+                }
+
+                let workout_notes = []
+
+                for ( let i = 0; i < machinesUsed; i++ ) {
+
+                    let machine_obj = {
+
+                        'machine_id': document.getElementById(i + '_machine').value,
+                        'notes': document.getElementById(i + '_machine_notes').value
+
+                    }
+
+                    workout_notes.push(machine_obj)
+
+                }
+
+                workout_obj.workout_notes = workout_notes
+
+                fetch('/record_workout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(workout_obj)
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+                    
+                    if ( data.file_name !== undefined ) {
+
+                        window.location = data.file_name
+
+                    } else {
+
+                        if ( data.workout_saved === true ) {
+
+                            alert("Workout Saved!")
+                            document.getElementById('workout_date').value = ''
+                            document.getElementById('workout_length').value = ''
+
+
+                            for ( let i = 0; i < machinesUsed; i++ ) {
+
+                                document.getElementById(i + '_machine').value = ''
+                                document.getElementById(i + '_machine_notes').value = ''
+
+                            }
+
+                        } else {
+
+                            alert("There was an error while saving workout. Please ensure the information is valid.")
+
+                        }
+
+                    }
+
+                })
+                .catch((error) => {
+                    console.log('Error:', error)
+                })
+
+            }
+
+            function handleSetGoalsButton() {
+
+                let weight_goal = document.getElementById('weight_goal_input').value
+                let daily_exercise_minutes = document.getElementById('exercise_minutes_goal_input').value
+                let daily_caloric_intake = document.getElementById('daily_caloric_goal_input').value
+                let exercise_days = document.getElementsByClassName('exercise_days')
+
+                let send_exercise_days = []
+
+                for ( let i = 0; i < exercise_days.length; i++ ) {
+
+                    if ( exercise_days[i].checked === true ) {
+
+                        send_exercise_days.push(exercise_days[i].id)
+
+                    }
+
+                }
+
+                let goals = {
+
+                    'weight_goal': weight_goal,
+                    'daily_caloric_intake': daily_caloric_intake,
+                    'exercise_days': send_exercise_days
+
+                }
+
+                fetch('/user_goals', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(goals)
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    if ( data.file_name !== undefined ) {
+
+                        window.location = data.file_name
+
+                    } else {
+
+                        console.log(data.message)
+
+                    }
+
+                })
+                .catch((error) => {
+
+                    console.log('Error:', error)
+
+                })
+
+            }
+
+        </script>
+    </body>
+</html>

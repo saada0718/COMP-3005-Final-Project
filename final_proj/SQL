@@ -1,0 +1,321 @@
+-- For creating the database
+CREATE TABLE IF NOT EXISTS members (
+
+	user_name VARCHAR(255) PRIMARY KEY,
+	email VARCHAR(255) UNIQUE NOT NULL,
+	birth_day DATE NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	first_name VARCHAR(255) NOT NULL,
+	last_name VARCHAR(255) NOT NULL,
+	payment_date DATE NOT NULL,
+	card_type VARCHAR(255) NOT NULL,
+	card_holder_name VARCHAR(255) NOT NULL,
+	card_number INT NOT NULL,
+	expiration_date VARCHAR(255) NOT NULL,
+	funds INT DEFAULT 0 NOT NULL,
+	points INT DEFAULT 0 NOT NULL
+
+);
+
+-- For keeping track of users goals
+CREATE TABLE IF NOT EXISTS user_goals (
+	goal_id SERIAL UNIQUE NOT NULL,
+	user_name VARCHAR(255) NOT NULL,
+	date_goal_set DATE DEFAULT CURRENT_DATE,
+	weight_goal NUMERIC(4,1) NOT NULL,
+	daily_exercise_minutes INT NOT NULL,
+	daily_caloric_intake INT NOT NULL,
+	PRIMARY KEY (date_goal_set, user_name, weight_goal, daily_exercise_minutes, daily_caloric_intake),
+	FOREIGN KEY (user_name) REFERENCES members(user_name)
+	
+);
+
+-- For keeping track of user's goals
+CREATE TABLE IF NOT EXISTS goal_exercise_dates (
+	goal_id INT NOT NULL,
+	week_day VARCHAR(255) NOT NULL,
+	PRIMARY KEY (goal_id, week_day),
+	FOREIGN KEY (goal_id) REFERENCES user_goals (goal_id)
+);
+
+-- For creating the trainer table
+CREATE TABLE IF NOT EXISTS trainers (
+	trainer_id SERIAL PRIMARY KEY,
+	first_name VARCHAR(255) NOT NULL,
+	last_name VARCHAR(255) NOT NULL,
+	password VARCHAR(255) NOT NULL	
+);
+
+-- For creating the admin table
+CREATE TABLE IF NOT EXISTS admins (
+	admin_id SERIAL PRIMARY KEY,
+	first_name VARCHAR(255) NOT NULL,
+	last_name VARCHAR(255) NOT NULL,
+	password VARCHAR(255) NOT NULL
+);
+
+-- For creating rooms -> assuming there is only one building
+CREATE TABLE IF NOT EXISTS rooms (
+	room_id SERIAL PRIMARY KEY
+);
+
+-- For keeping track of fitness equipment
+CREATE TABLE IF NOT EXISTS equipment ( 
+	equipment_id SERIAL PRIMARY KEY,
+	equipment_name VARCHAR(255) NOT NULL
+);
+
+-- For keeping track of personal training sessions
+CREATE TABLE IF NOT EXISTS pt_sessions (
+	session_id SERIAL PRIMARY KEY,
+	member_id VARCHAR(255) NOT NULL,
+	trainer_id INT NOT NULL,
+	room_id INT NOT NULL,
+	start_time TIME NOT NULL,
+	end_time TIME NOT NULL,
+	pt_date DATE NOT NULL,
+	FOREIGN KEY (member_id) REFERENCES members(user_name),
+	FOREIGN KEY (trainer_id) REFERENCES trainers(trainer_id),
+	FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+);
+
+-- Placed in a seperate table as this is optional -> Do not want null values by forcing to have this.
+CREATE TABLE IF NOT EXISTS pt_notes (
+	session_id INT PRIMARY KEY,
+	progress_notes VARCHAR(255) NOT NULL,
+	FOREIGN KEY (session_id) REFERENCES pt_sessions(session_id) ON DELETE CASCADE
+);
+
+-- For creating classes table
+CREATE TABLE IF NOT EXISTS classes (
+	class_id SERIAL PRIMARY KEY,
+	trainer_id INT NOT NULL,
+	room_id INT NOT NULL,
+	class_date DATE NOT NULL,
+	start_time TIME NOT NULL,
+	end_time TIME NOT NULL,
+	class_focus VARCHAR(255) NOT NULL,
+	FOREIGN KEY (trainer_id) REFERENCES trainers(trainer_id),
+	FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+);
+
+-- To keep track of which member is taking what class
+CREATE TABLE IF NOT EXISTS users_taking_class (
+	class_id INT NOT NULL,
+	member_id VARCHAR(255) NOT NULL,
+	FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE,
+	FOREIGN KEY (member_id) REFERENCES members(user_name),
+	PRIMARY KEY (class_id, member_id)
+);
+
+-- To keep track of the "life" of fitness equipment (If it is needs replacement, repair, etc.)
+CREATE TABLE IF NOT EXISTS equipment_maintenance (
+	request_id SERIAL PRIMARY KEY,
+	equipment_id INT NOT NULL,
+	comment VARCHAR(255) NOT NULL,
+	request_date DATE DEFAULT CURRENT_DATE,
+	FOREIGN KEY (equipment_id) REFERENCES equipment (equipment_id)
+
+);
+
+-- To keep track of member workouts
+CREATE TABLE IF NOT EXISTS workouts (
+	workout_id SERIAL PRIMARY KEY,
+	member_id VARCHAR(255) NOT NULL,
+	workout_date DATE DEFAULT CURRENT_DATE,
+	workout_length INT NOT NULL,
+	FOREIGN KEY (member_id) REFERENCES members(user_name)
+);
+
+-- To keep track of which machines used during workouts
+CREATE TABLE IF NOT EXISTS machines_used (
+	equipment_name INT NOT NULL,
+	workout_id INT NOT NULL,
+	notes TEXT NOT NULL, -- To keep track of sets, reps, etc.
+	FOREIGN KEY (equipment_name) REFERENCES equipment (equipment_id),
+	FOREIGN KEY (workout_id) REFERENCES workouts (workout_id),
+	PRIMARY KEY ( equipment_name, workout_id ) -- Assuming machine used once per workout
+);
+
+-- To receive feedback from users
+CREATE TABLE IF NOT EXISTS feedback (
+	feedback_id SERIAL PRIMARY KEY,
+	user_name VARCHAR(255) NOT NULL,
+	feedback TEXT NOT NULL,
+	FOREIGN KEY(user_name) REFERENCES members(user_name)
+);
+
+-- To keep track of transactions
+CREATE TABLE IF NOT EXISTS transactions (
+	transaction_id SERIAL PRIMARY KEY,
+	user_name VARCHAR(255) NOT NULL,
+	amount INT NOT NULL,
+	description TEXT NOT NULL,
+	date DATE DEFAULT CURRENT_DATE,
+	FOREIGN KEY (user_name) REFERENCES members(user_name)
+);
+
+-- To Create Dummy Values
+
+-- Dummy Trainer
+INSERT INTO trainers ( first_name, last_name, password ) VALUES ( 'Joe', 'Doe', 'JoeDoe' );
+INSERT INTO trainers ( first_name, last_name, password ) VALUES ( 'Pat', 'Smith', 'PatSmith' );
+INSERT INTO trainers ( first_name, last_name, password ) VALUES ( 'George', 'Smith', 'GeorgeSmith' );
+
+-- Dummy Room
+INSERT INTO rooms ( room_id ) VALUES ( 1 );
+INSERT INTO rooms ( room_id ) VALUES ( 2 );
+INSERT INTO rooms ( room_id ) VALUES ( 3 );
+INSERT INTO rooms ( room_id ) VALUES ( 4 );
+
+
+-- Dummy Admin
+INSERT INTO admins ( first_name, last_name, password ) VALUES ( 'Trevor', 'Polarollo', 'gt' );
+INSERT INTO admins ( first_name, last_name, password ) VALUES ( 'Lisa', 'Hughes', 'LH' );
+
+-- Dummy Equipment
+INSERT INTO equipment ( equipment_name ) VALUES ( 'Treadmill' );
+INSERT INTO equipment ( equipment_name ) VALUES ( 'Smith Machine' );
+INSERT INTO equipment ( equipment_name ) VALUES ( 'Barbell' );
+INSERT INTO equipment ( equipment_name ) VALUES ( 'Rowing Machine' );
+
+-- Quries used in server
+-- Variable values are being placed in here
+
+SELECT class_id FROM users_taking_class WHERE member_id='saada0718';
+SELECT trainer_id, room_id, start_time, end_time, pt_date FROM pt_sessions WHERE member_id='saada0718';
+SELECT * FROM classes WHERE class_id='1';
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT date_goal_set, weight_goal, daily_exercise_minutes, daily_caloric_intake FROM user_goals WHERE user_name='saada0718';
+SELECT * FROM rooms;
+SELECT room_id, pt_date, start_time, end_time FROM pt_sessions WHERE room_id='1';
+SELECT room_id, class_date, start_time, end_time FROM classes WHERE room_id='1';
+SELECT session_id, room_id, trainer_id, member_id, pt_date, start_time, end_time FROM pt_sessions;
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT start_time, end_time, class_date FROM classes WHERE trainer_id='1';
+SELECT start_time, end_time, pt_date FROM pt_sessions WHERE trainer_id='1';
+SELECT trainer_id, first_name, last_name FROM trainers;
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE trainer_id='1';
+SELECT class_date, start_time, end_time FROM classes WHERE trainer_id='1';
+SELECT * FROM rooms;
+SELECT class_date, start_time, end_time FROM classes WHERE room_id='1';
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE room_id='1';
+SELECT  class_id, room_id, class_date, start_time, end_time, class_focus, trainer_id FROM classes;
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT class_id FROM classes WHERE class_date='2023-12-03' AND start_time<='18:00:00' AND end_time>='19:00:00'
+SELECT session_id FROM pt_sessions WHERE room_id='1' AND pt_date='2023-12-03' AND start_time>='18:00:00' AND end_time<='19:00:00';
+SELECT class_id FROM classes WHERE trainer_id='1' AND class_date='2023-12-03' AND start_time<='18:00:00' AND end_time>='19:00:00';
+SELECT session_id FROM pt_sessions WHERE trainer_id='1' AND pt_date='2023-12-03' AND start_time<='18:00:00' AND end_time>='19:00:00';
+SELECT points, funds FROM members WHERE user_name='saada0718';
+SELECT session_id, trainer_id, pt_date, start_time, end_time FROM pt_sessions WHERE member_id='saada0718';
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT session_id, member_id, pt_date, start_time, end_time FROM pt_sessions s WHERE s.trainer_id='1' AND NOT EXISTS (SELECT 1 FROM pt_notes p WHERE p.session_id=s.session_id);
+SELECT * FROM equipment;
+SELECT user_name FROM members;
+SELECT user_name, email, birth_day, first_name, last_name FROM members WHERE user_name='saada0718';
+SELECT * FROM pt_sessions WHERE member_id='saada0718';
+SELECT first_name, last_name FROM trainers t WHERE t.trainer_id='1';
+SELECT * FROM classes;
+SELECT room_id FROM rooms;
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE room_id='1' ORDER BY pt_date, start_time;
+SELECT class_date, start_time, end_time FROM classes WHERE room_id='1' ORDER BY class_date, start_time;
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE trainer_id='1';
+SELECT class_date, start_time, end_time FROM classes WHERE trainer_id='1';
+SELECT trainer_id, first_name, last_name FROM trainers;
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE room_id='1' AND (( '19:00:00'>=start_time AND '19:00:00'<=end_time) OR ('20:00:00'>=start_time AND '20:00:00'<=end_time)) AND pt_date='2023-11-14';
+SELECT class_date, start_time, end_time FROM classes WHERE room_id='1' AND (('19:00:00'>=start_time AND '19:00:00'<=end_time) OR ('20:00:00'>=start_time AND '20:00:00'<=end_time)) AND class_date='2023-11-14';
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE trainer_id='1' AND (('19:00:00'>=start_time AND '19:00:00'<=end_time) OR ('20:00:00'>=start_time AND '20:00:00'<=end_time)) AND pt_date='2023-11-14';
+SELECT class_date, start_time, end_time FROM classes WHERE trainer_id='1' AND (('19:00:00'>=start_time AND '19:00:00'<=end_time) OR ('20:00:00'>=start_time AND '20:00:00'<=end_time)) AND class_date='2023-11-14';
+SELECT pt_date, start_time, end_time FROM pt_sessions WHERE member_id='saada0718' AND (('19:00:00'>=start_time AND '19:00:00'<=end_time) OR ('20:00:00'>=start_time AND '20:00:00'<=end_time)) AND pt_date='2023-11-14';
+SELECT class_id FROM users_taking_class WHERE member_id='saada0718';
+SELECT funds, points, payment_date FROM members WHERE user_name='saada0718';
+SELECT class_date, start_time, end_time FROM classes WHERE class_id='1';
+SELECT points, funds, payment_date FROM members WHERE user_name='saada0718';
+SELECT equipment_id FROM equipment WHERE equipment_id='1';
+SELECT funds, points FROM members WHERE user_name='saada0718';
+SELECT class_date, start_time, end_time FROM classes WHERE class_id='1';
+SELECT session_id FROM pt_sessions WHERE pt_date='2023-11-14' AND member_id='saada0718' AND (('19:00:00'<=start_time AND '19:00:00'>=end_time) OR ('20:00:00'<=start_time AND '20:00:00'>=end_time));
+SELECT class_id FROM users_taking_class WHERE member_id='saada0718';
+SELECT funds, points, payment_date FROM members WHERE user_name='saada0718';
+SELECT class_date, start_time, end_time FROM classes WHERE class_id='1';
+SELECT funds, points, payment_date FROM members WHERE user_name='saada0718';
+SELECT * from feedback;
+SELECT * FROM equipment_maintenance;
+SELECT equipment_name FROM equipment WHERE equipment_id='1';
+SELECT workout_id, workout_date, workout_length FROM workouts WHERE member_id='saada0718';
+SELECT equipment_name, notes FROM machines_used WHERE workout_id='1';
+SELECT equipment_name FROM equipment WHERE equipment_id='1';
+SELECT payment_date FROM members WHERE user_name='saada0718';
+SELECT CURRENT_DATE;
+SELECT payment_date, funds FROM members WHERE user_name='saada0718';
+SELECT CURRENT_DATE;
+SELECT * FROM transactions ORDER BY date;
+SELECT CURRENT_DATE;
+SELECT session_id, pt_date, start_time, end_time, trainer_id FROM pt_sessions WHERE member_id='saada0718' AND '2023-11-14'<=pt_date AND pt_date<='2023-11-21';
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT CURRENT_DATE;
+SELECT class_id FROM users_taking_class WHERE member_id='saada0718';
+SELECT class_date, start_time, trainer_id, end_time FROM classes WHERE class_id='1';
+SELECT first_name, last_name FROM trainers WHERE trainer_id='1';
+SELECT funds, points FROM members WHERE user_name='saada0718';
+SELECT funds, points FROM members WHERE user_name='saada0718';
+SELECT funds FROM members WHERE user_name='saada0718';
+SELECT first_name, last_name, trainer_id FROM trainers;
+SELECT user_name FROM members WHERE user_name='saada0718';
+SELECT * FROM admins WHERE admin_id='1' AND password='gt';
+SELECT * FROM trainers t WHERE t.trainer_id='1' AND t.password='JoeDoe';
+SELECT * from members m where m.user_name='saada0718' and m.password='temp';
+SELECT payment_date, funds FROM members WHERE user_name='saada0718';
+SELECT CURRENT_DATE;
+SELECT member_id FROM users_taking_class WHERE class_id='1';
+SELECT funds from members WHERE user_name='saada0718';
+SELECT member_id FROM users_taking_class WHERE class_id='1';
+
+-- Insert queries
+
+
+INSERT INTO workouts ( member_id, workout_date, workout_length ) VALUES ( 'saada0718', '2023-11-14', '20' ) RETURNING workout_id;
+INSERT INTO workouts ( member_id, workout_length ) VALUES ( 'saada0718', '20' ) RETURNING workout_id;
+INSERT INTO machines_used( equipment_name, workout_id, notes ) VALUES ('1', '1', '10 reps of pull ups');
+INSERT INTO members ( user_name, email, birth_day, password, first_name, last_name, payment_date, card_type, card_holder_name, card_number, expiration_date, funds, points )
+    VALUES ( 'saada0718', 'saadahmed5@cmail.carleton.ca', '2001-07-18', 'temp', 'Saad', 'Ahmed', CURRENT_DATE, 'MasterCard', 'Saad Ahmed', '123456789', '11/26', '0', '0' );
+INSERT INTO classes (trainer_id, room_id, class_date, start_time, end_time, class_focus) 
+    VALUES ('1','1', '2023-12-11', '19:00:00', '20:00:00', 'The focus of this will be yoga');
+INSERT INTO transactions (user_name, amount, description) VALUES ('saada0718', '-10', 'User Cancelled PT Session');"
+INSERT INTO pt_sessions ( member_id, trainer_id, room_id, start_time, end_time, pt_date)
+    VALUES ('saada0718', '1', '1', '19:00:00', '20:00:00', '2023-11-13' ); 
+INSERT INTO transactions (user_name, amount, description) VALUES ('saada0718', '-10', 'User Cancelled PT Session');"
+INSERT INTO classes (trainer_id, room_id, class_date, start_time, end_time, class_focus) 
+    VALUES ('1', '1', '2023-12-13', '19:00:00', '20:00:00', 'The focus of this class will be yoga' );
+INSERT INTO machines_used( equipment_name, workout_id, notes ) 
+    VALUES ('1', '1', '10 reps of pull ups');
+INSERT INTO goal_exercise_dates (goal_id, week_day) 
+    VALUES ('1', 'Monday');"
+INSERT INTO transactions (user_name, amount, description) VALUES ('saada0718', '-15', 'Admin refunded monthly fee');
+
+
+-- Update quries
+
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='10' WHERE user_name='saada0718';
+UPDATE members SET payment_date='2023-12-11', funds='10' WHERE user_name='saada0718';
+UPDATE members SET card_type='MasterCard', card_holder_name='Saad Ahmed', card_number='123456789', expiration_date='11/33' WHERE user_name='saada0718';
+UPDATE members SET funds='100', points='0' WHERE user_name='saada0718';
+UPDATE members SET funds='100' WHERE user_name='saada0718';
+UPDATE members SET funds='100', payment_date='2023-12-11' WHERE user_name='saada0718';
+UPDATE members SET funds='100' WHERE user_name='saada0718';
+UPDATE classes SET start_time='19:00:00', end_time='20:00:00', class_date='2023-11-12' WHERE class_id='1';
+
+
+-- Delete quries
+DELETE FROM classes WHERE class_id='1';
+DELETE FROM pt_sessions WHERE session_id='1';
+DELETE FROM pt_sessions WHERE session_id='1';
+DELETE FROM feedback WHERE feedback_id='1';
+DELETE FROM equipment_maintenance WHERE request_id='1';
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Health and Fitness Club</title>
+
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            #user_name, #user_password {
+
+                width: 45%;
+                padding-right: 30px;
+                padding-top: 11px;
+                padding-bottom:11px;
+                display: inline-block;
+                font-size: 18px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+                color:black;
+                margin-top: 8px;
+
+            }
+
+            #user_info {
+
+                margin-left: 35%;
+                margin-top: 12%;
+            }
+
+            #login_btn, #sign_up_btn {
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 23px;
+            }
+
+            #invalid_login {
+
+                display: none;
+                color: red;
+                margin-bottom: 10px;
+
+            }
+
+            #sign_up_btn:hover, #login_btn:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            #sign_up_btn {
+
+                margin-left: 1%;
+
+            }
+
+            label {
+
+                font-size: 20px;
+            }
+
+
+        </style>
+    </head>
+
+    <body>
+
+        <form action="/action_page.php">
+
+            <div id="user_info">
+                <label for="user_name"><b>User Name:</b></label><br>
+                <input type="text" id="user_name" name="user_name" placeholder="User Name"><br><br>
+
+                <label for="user_password"><b>Password:</b></label><br>
+                <input type="password" id="user_password" name="user_password" placeholder="password"><br><br>
+                <div id="invalid_login"><b>User name or password invalid</b></div>
+
+                <button type="button" id="login_btn">Login</button>
+                <button type="button" id="sign_up_btn">Sign up</button>
+            </div>
+
+        </form> 
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+
+                //add key handler for the document as a whole, not separate elements.
+                document.getElementById('login_btn').addEventListener('click', handleLoginButton)
+                document.getElementById('sign_up_btn').addEventListener('click', handleSignUpButton)
+
+            })
+
+            function handleLoginButton() {
+
+                let user_name = document.getElementById("user_name")
+                let user_password = document.getElementById("user_password")
+
+                let login_info = {
+                    'user_name': user_name.value,
+                    'user_password': user_password.value
+                }
+
+                fetch('/login_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(login_info)
+                })
+                .then(function(response) {
+
+                    return response.json()
+                })
+    
+                .then((data) => {
+
+                    if ( data.user_not_found !== undefined ) {
+
+                        document.getElementById('invalid_login').style.display = 'block'
+
+                    } else {
+
+                        window.location = data.file_name
+                        document.getElementById('invalid_login').style.display = 'none'
+
+                    }
+
+                    document.getElementById('user_name').value = ''
+                    document.getElementById('user_password').value = ''
+
+                })
+                .catch((error) => {
+                    console.log('Error:', error)
+                })
+
+            }
+
+
+            function handleSignUpButton() {
+
+                fetch('/sign_up', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    window.location = data.file_name
+                    document.getElementById('invalid_login').style.display = 'none'
+                    document.getElementById('user_name').value = ''
+                    document.getElementById('user_password').value = ''
+
+                })
+                .catch((error) => {
+  
+                    console.log('Error:', error)
+
+                })
+
+            }
+
+        </script>
+    </body>
+</html>

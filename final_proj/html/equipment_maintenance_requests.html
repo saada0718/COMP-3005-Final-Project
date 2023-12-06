@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+            }
+
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <div id="complaints"></div>
+
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                requestComplaints()
+
+            })
+
+
+            function requestComplaints() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_complaints', false)
+                xhr.send( null )
+
+                let complaints = JSON.parse(xhr.response)
+
+                if ( complaints.file_name !== undefined ) {
+
+                    window.location = complaints.file_name
+
+                } else {
+
+                    if ( complaints.complaints.length === 0 ) {
+
+                        let display_no_complaints = document.createElement('pre')
+
+                        display_no_complaints.innerHTML = "There are maintenance requests."
+                        document.getElementById('complaints').appendChild(display_no_complaints)
+
+                    } else {
+
+                        displayComplaints(complaints.complaints)
+
+                    }
+
+                }
+
+            }
+
+            let complaints_deleted = 0
+
+            function displayComplaints(complaints) {
+
+                for ( let i = 0; i < complaints.length; i++ ) {
+
+                    let complaint = complaints[i]
+                    let complaint_class_name = 'complaint_' + complaint.request_id
+                    let complaint_info = document.createElement('pre')
+                    let delete_complaint_btn = document.createElement('button')
+
+                    complaint_info.className = complaint_class_name
+                    delete_complaint_btn.className = complaint_class_name
+
+                    delete_complaint_btn.textContent = "Complaint Addressed"
+
+                    complaint_info.innerHTML = "Complaint " + complaint.request_id
+                    complaint_info.innerHTML += "\n\t"
+                    complaint_info.innerHTML += "Equipment Name: " + complaint.equipment_name + " (" + complaint.equipment_id + ")"
+                    complaint_info.innerHTML += "\n\t"
+                    complaint_info.innerHTML += "Complaint Date: " + complaint.request_date
+                    complaint_info.innerHTML += "\n\t"
+                    complaint_info.innerHTML += "Comment: "
+                    complaint_info.innerHTML += "\n\t\t"
+                    complaint_info.innerHTML += complaint.comment
+                    complaint_info.innerHTML += "\n\n"
+
+                    document.getElementById('complaints').appendChild(complaint_info)
+                    document.getElementById('complaints').appendChild(delete_complaint_btn)
+
+                    delete_complaint_btn.addEventListener('click', function() {
+
+                        fetch('/delete_complaint', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({'request_id': complaint.request_id})
+                        })
+                        .then(function(response) {
+
+                            return response.json()
+
+                        })
+                        .then((data) => {
+
+                            if ( data.file_name !== undefined ) {
+
+                                window.location = data.file_name
+
+                            } else {
+
+                                if ( data.deleted === true ) {
+
+                                    alert("The request was deleted successfully.")
+
+                                    let complaint_elements = document.getElementsByClassName(complaint_class_name)
+
+                                    while ( complaint_elements.length > 0 ) {
+
+                                        complaint_elements[0].remove()
+
+                                    }
+
+                                    complaints_deleted += 1
+
+                                    if ( complaints_deleted === complaints.length) {
+
+                                        let display_no_complaints = document.createElement('pre')
+
+                                        display_no_complaints.innerHTML = "There are maintenance requests."
+                                        document.getElementById('complaints').appendChild(display_no_complaints)
+
+                                    }
+
+                                } else {
+
+                                    alert("The was an error in deleting the request.")
+
+                                }
+
+                            }
+
+                        })
+                        .catch((error) => {
+
+                            console.log('Error:', error)
+
+                        })
+
+                    })
+
+                }
+
+
+            }
+
+        </script>
+    </body>
+</html>

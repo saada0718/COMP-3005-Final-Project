@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Health Metrics</title>
+    </head>
+
+    <body>
+
+        <form action="/action_page.php">
+
+            <label for="height_input">Enter your height</label><br>
+            <input for="height_input" id="height_input" name="height_input"><br>
+
+            <label for="weight_input">Enter your weight</label><br>
+            <input for="weight_input" id="weight_input" name="weight_input"><br>
+
+            <label for="city_input">City:</label><br>
+            <input for="city_input" id="city_input" name="city_input"><br>
+
+            <label for="province_input">Province:</label><br>
+
+            <select name="province_input" id="province_input">
+                <option value="Alberta">Alberta</option>
+                <option value="British Columbia">British Columbia</option>
+                <option value="Manitoba">Manitoba</option>
+                <option value="New Brunswick">New Brunswick</option>
+                <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                <option value="Nova Scotia">Nova Scotia</option>
+                <option value="Prince Edward Island">Prince Edward Island</option>
+                <option value="Quebec">Quebec</option>
+                <option value="Saskatchewan">Saskatchewan</option>
+            </select>
+
+            <button type="button">Save</button>
+
+        </form>
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                document.addEventListener('keydown', handleKeyDown)
+                document.addEventListener('keyup', handleKeyUp)
+
+                document.getElementById('login_btn').addEventListener('click', handleLoginButton)
+                document.getElementById('sign_up_btn').addEventListener('click', handleSignUpButton)
+
+            })
+
+        </script>
+    </body>
+</html>
