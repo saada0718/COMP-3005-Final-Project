@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Goals</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+
+                width:30%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+
+            }
+
+            textarea {
+
+                width: 40%;
+                padding-right: 30px;
+                padding-top: 11px;
+                padding-bottom:11px;
+                display: inline-block;
+                font-size: 18px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+                color:black;
+                margin-top: 8px;
+                height: 185px;
+
+            }
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+            input {
+
+                width: 15%;
+                box-sizing: border-box;
+                height: 30px;
+
+            }
+
+            label {
+                font-size: 23px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <form action="/action_page.php">
+
+            <label for="trainer_id">Trainer ID:</label><br>
+            <input for="trainer_id" type="number" id="trainer_id" name="trainer_id"><br><br>
+
+            <label for="room_id">Room ID:</label><br>
+            <input for="room_id" type="number" id="room_id" name="room_id"><br><br>
+
+            <label for="class_date">Enter Class Date :</label><br>
+            <input for="class_date" type="date" id="class_date" name="class_date"><br><br>
+
+            <label for="start_time">Enter start time:</label><br>
+            <input for="start_time" type="time" id="start_time" name="start_time"><br><br>
+
+            <label for="end_time">Enter end time:</label><br>
+            <input for="end_time" type="time" id="end_time" name="end_time"><br><br>
+
+            <label for="class_description">Enter Class Description:</label><br>
+            <textarea id="class_focus" name="class_focus" rows="4" cols="50" placeholder="Enter class description here..."></textarea><br><br>
+
+            <button type="button" id="book_class">Book Class</button>
+            <button type="button" id="get_rooms">View Room Bookings</button>
+            <button type="button" id="get_trainers">View Trainer's Schedule</button>
+        </form>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                document.getElementById('book_class').addEventListener('click', bookClass)
+                document.getElementById('get_rooms').addEventListener('click', getRoomsPage)
+                document.getElementById('get_trainers').addEventListener('click', getTrainersPage)
+
+            })
+
+            function getTrainersPage() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_trainer_availability_page', false)
+                xhr.send( null )
+
+                let file_name = JSON.parse(xhr.response)
+                window.location = file_name.file_name
+
+            }
+
+            function getRoomsPage() {
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_room_bookings_page', false)
+                xhr.send( null )
+
+                let file_name = JSON.parse(xhr.response)
+                window.location = file_name.file_name
+
+            }
+
+            function bookClass() {
+
+                let room_id = document.getElementById('room_id').value
+                let trainer_id = document.getElementById('trainer_id').value
+                let class_date = document.getElementById('class_date').value
+                let start_time = document.getElementById('start_time').value
+                let end_time = document.getElementById('end_time').value
+                let class_focus = document.getElementById('class_focus').value
+
+                let class_obj = {
+
+                    'room_id': room_id,
+                    'trainer_id': trainer_id,
+                    'class_date': class_date,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'class_focus': class_focus
+                }
+
+                fetch('/create_class', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(class_obj)
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    if ( data.file_name !== undefined ) {
+
+                        window.location = data.file_name
+
+                    } else {
+
+                        if ( data.booked === true ) {
+
+                            alert("The class was successfully booked")
+                            document.getElementById('room_id').value = ''
+                            document.getElementById('trainer_id').value = ''
+                            document.getElementById('class_date').value = ''
+                            document.getElementById('start_time').value = ''
+                            document.getElementById('end_time').value = ''
+                            document.getElementById('class_focus').value = ''
+
+                        } else {
+
+                            alert("There was an error in booking the class")
+
+                        }
+
+                    }
+
+                })
+                .catch((error) => {
+                    console.log('Error:', error)
+                })
+
+            }
+
+        </script>
+    </body>
+</html>

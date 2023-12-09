@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div id="room_bookings"></div>
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                requestRoomBookings()
+
+            })
+
+            function requestRoomBookings() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_room_bookings', false)
+                xhr.send( null )
+
+                let bookings = JSON.parse(xhr.response)
+
+                if ( bookings.file_name !== undefined ) {
+
+                    window.location = bookings.file_name
+
+                } else {
+
+                    if ( bookings.room_bookings.length === 0 ) {
+
+                        let display_no_room_bookings = document.createElement('pre')
+
+                        display_no_room_bookings.innerHTML = "There are no room bookings"
+                        document.getElementById('room_bookings').appendChild(display_no_room_bookings)
+
+                    } else {
+
+                        displayBookings(bookings.room_bookings)
+
+                    }
+
+                }
+
+
+            }
+
+            function displayBookings(bookings) {
+
+                for ( let i = 0; i < bookings.length; i++ ) {
+
+                    let booking_tag = document.createElement('pre')
+                    let booking = bookings[i]
+                    let date = undefined
+
+                    if ( booking.class_date === undefined ) {
+
+                        date = booking.pt_date
+
+                    } else {
+
+                        date = booking.class_date
+
+                    }
+
+                    booking_tag.innerHTML = "Room: " + booking.room_id + " booked on " + date + " from " + booking.start_time + " to " + booking.end_time + "\n"
+                    document.getElementById('room_bookings').appendChild(booking_tag)
+
+
+                }
+
+            }
+
+        </script>
+    </body>
+</html>

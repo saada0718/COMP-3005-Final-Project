@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+            }
+
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <div id="user_feedback"></div>
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_user_feedback', false)
+                xhr.send( null )
+
+                let user_feedback = JSON.parse(xhr.response)
+
+                if ( user_feedback.file_name !== undefined ) {
+
+                    window.location = user_feedback.file_name
+
+                } else {
+
+                    user_feedback = user_feedback.feedback
+
+                    if ( user_feedback.length === 0 ) {
+
+                        let display_no_feedback = document.createElement('pre')
+
+                        display_no_feedback.innerHTML = "There is no feedback."
+                        document.getElementById('user_feedback').appendChild(display_no_feedback)
+
+                    } else {
+
+                        displayUserFeedback(user_feedback)
+
+                    }
+
+                }
+
+            })
+
+            let deleted_feedback = 0
+
+            function displayUserFeedback(user_feedback) {
+
+                for ( let i = 0; i < user_feedback.length; i++ ) {
+
+                    let feedback = user_feedback[i]
+                    let feedback_class_name = 'feed_back_' + feedback.feedback_id
+
+                    let feedback_info = document.createElement('pre')
+                    let delete_feedback_btn = document.createElement('button')
+
+                    feedback_info.className = feedback_class_name
+                    delete_feedback_btn.className = feedback_class_name
+
+                    feedback_info.innerHTML = "Feedback ID: " + feedback.feedback_id
+                    feedback_info.innerHTML += "\nBy: " + feedback.user_name
+                    feedback_info.innerHTML += "\nComment:\n" + feedback.feedback
+
+
+                    document.getElementById('user_feedback').appendChild(feedback_info)
+                    document.getElementById('user_feedback').appendChild(delete_feedback_btn)
+
+                    delete_feedback_btn.textContent = "Delete"
+
+                    delete_feedback_btn.addEventListener('click', function () {
+                        fetch('/remove_feedback', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify( { 'feedback_id': feedback.feedback_id } )
+                        })
+                        .then(function(response) {
+
+                            return response.json()
+
+                        })
+                        .then((data) => {
+
+                            if ( data.file_name !== undefined ) {
+
+                                window.location = data.file_name
+
+                            } else {
+
+                                if ( data.deleted === true ) {
+
+                                    alert("Feedback was deleted from the database.")
+
+                                    let feedback = document.getElementsByClassName(feedback_class_name)
+
+                                    while ( feedback.length > 0 ) {
+
+                                        feedback[0].remove()
+
+                                    }
+
+                                    deleted_feedback += 1
+
+                                    if ( deleted_feedback === user_feedback.length ) {
+
+                                        let display_no_feedback = document.createElement('pre')
+
+                                        display_no_feedback.innerHTML = "There is no feedback."
+                                        document.getElementById('user_feedback').appendChild(display_no_feedback)
+
+                                    }
+
+                                } else {
+
+                                    alert("There was an error in deleting the feedback from the database.")
+
+                                }
+
+                            }
+
+                        })
+                        .catch((error) => {
+
+                            console.log('Error:', error)
+
+                        })
+
+                    })
+
+                }
+
+            }
+
+        </script>
+    </body>
+</html>
