@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+
+                width:30%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+
+            }
+
+            textarea {
+
+                width: 40%;
+                padding-right: 30px;
+                padding-top: 11px;
+                padding-bottom:11px;
+                display: inline-block;
+                font-size: 18px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+                color:black;
+                margin-top: 8px;
+                height: 185px;
+
+            }
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+            input {
+
+                width: 15%;
+                box-sizing: border-box;
+                height: 25px;
+
+            }
+
+            label {
+                font-size: 23px;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <div id="equipment_list"></div><br>
+
+        <form action="/action_page.php">
+
+            <label for="equipment_id">Enter the equipment ID:</label><br><br>
+            <input type="number" id="equipment_id" name="equipment_id"><br><br>
+            <textarea id="maintenance_comment" name="maintenance_comment" rows="4" cols="50" placeholder="Describe the issue..."></textarea><br><br>
+            <button type="button" id="submit_btn">Submit Request</button>
+        </form> 
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                document.getElementById('submit_btn').addEventListener('click', submitMaintenanceRequest)
+                requestEquipmentList()
+
+            })
+
+            function submitMaintenanceRequest() {
+
+                let equipment_id = document.getElementById('equipment_id')
+                let maintenance_comment = document.getElementById('maintenance_comment')
+
+                let maintenance_obj = {
+                    'equipment_id': equipment_id.value,
+                    'maintenance_comment': maintenance_comment.value
+                }
+
+                fetch('/file_maintenance_complaint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(maintenance_obj)
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    if ( data.file_name !== undefined ) {
+
+                        window.location = data.file_name
+
+                    } else {
+
+                        if ( data.filed === true ) {
+
+                            alert("The complaint was filed successfully")
+
+                        } else {
+
+                            alert("Complaint could not be filed.")
+
+                        }
+
+                        document.getElementById('equipment_id').value = ''
+                        document.getElementById('maintenance_comment').value = ''
+
+                    }
+
+                })
+                .catch((error) => {
+                    console.log('Error:', error)
+                })
+
+            }
+
+            function requestEquipmentList() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_equipment_list', false)
+                xhr.send( null )
+
+                let equipment_list = JSON.parse(xhr.response)
+
+                if ( equipment_list.file_name !== undefined ) {
+
+                    window.location = equipment_list.file_name
+
+                } else {
+
+                    displayEquipmentList(equipment_list.equipment)
+
+                }
+
+            }
+
+            function displayEquipmentList(equipment_list) {
+
+                for ( let i = 0; i < equipment_list.length; i++ ) {
+
+                    let equipment_info = document.createElement('pre')
+                    let equipment = equipment_list[i]
+
+                    equipment_info.innerHTML = "Equipment ID: " + equipment.equipment_id + " "
+                    equipment_info.innerHTML += "Equipment Name: " + equipment.equipment_name + "\n"
+
+                    document.getElementById("equipment_list").appendChild(equipment_info)
+
+                }
+
+            }
+
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+            }
+
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="classes_list"></div>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/classes', false)
+                xhr.send( null )
+
+                let classes = JSON.parse(xhr.response)
+
+                if ( classes.file_name !== undefined ) {
+
+                    window.location = classes.file_name
+
+                } else {
+
+                    if ( classes.classes.length === 0 ) {
+
+                        let display_no_classes = document.createElement('pre')
+
+                        display_no_classes.innerHTML = "No classes currently exist"
+                        document.getElementById('classes_list').appendChild(display_no_classes)
+
+                    } else {
+
+                        displayClasses(classes.classes)
+
+                    }
+
+                }
+
+            })
+
+
+            function displayClasses(classes){
+
+                let curr_class = null
+
+                for ( let i = 0; i < classes.length; i++ ) {
+
+                    curr_class = classes[i]
+
+                    const class_btn = document.createElement('button')
+                    let class_info = document.createElement('pre')
+
+                    class_info.innerHTML = curr_class.class_focus + " class on " + curr_class.class_date.day + "/" + curr_class.class_date.month + "/" + curr_class.class_date.year + ": " + curr_class.start_time + " - " + curr_class.end_time
+                    class_btn.textContent = "Register"
+
+                    document.getElementById('classes_list').appendChild(class_info)
+                    document.getElementById('classes_list').appendChild(class_btn)
+
+                    class_btn.addEventListener('click', sendRequestToBookClass)
+
+                }
+
+                function sendRequestToBookClass() {
+
+                    fetch('/book_class', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify( { 'class_id' : curr_class.class_id } )
+                    })
+                    .then(function(response) {
+
+                        return response.json()
+
+                    })
+                    .then((data) => {
+
+                        if ( data.file_name !== undefined ) {
+
+                            window.location = data.file_name
+
+                        } else {
+
+                            if ( data.booked === true ) {
+
+                                alert("You have registered for this class.")
+
+                            } else {
+
+                                alert("There was an error in registering for this class. You may have registered for this class already. Check you schedule.")
+
+                            }
+
+                        }
+
+                    })
+                    .catch((error) => {
+
+                        console.log('Error:', error)
+
+                    })
+
+                }
+
+            }
+
+
+        </script>
+    </body>
+</html>
