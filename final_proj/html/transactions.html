@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+
+        </style>
+    </head>
+
+    <body>
+
+        <div id="transactions"></div>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                requestTransactions()
+
+                //Code obtained from : https://stackoverflow.com/questions/43043113/how-to-force-reloading-a-page-when-using-browser-back-button
+                window.addEventListener( "pageshow", function ( event ) {
+
+                    var historyTraversal = event.persisted || 
+                        ( typeof window.performance != "undefined" && 
+                            window.performance.navigation.type === 2 );
+                            if ( historyTraversal ) {
+                                // Handle page restore.
+                                window.location.reload();
+                            }
+                });
+
+            })
+
+            function requestTransactions() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_transactions', false)
+                xhr.send( null )
+
+                let transactions_obj = JSON.parse(xhr.response)
+
+                if ( transactions_obj.file_name !== undefined ) {
+
+                    window.location = transactions_obj.file_name
+
+                } else {
+
+                    if ( transactions_obj.error === true ) {
+
+                        alert("There was an error in getting the transcations.")
+
+                    } else {
+
+                        let transactions = transactions_obj.transactions
+
+                        if ( transactions.length === 0 ) {
+
+                            let trans_info = document.createElement('pre')
+                            trans_info.innerHTML = "There are no transactions currently."
+                            document.getElementById('transactions').appendChild(trans_info)
+
+                        } else {
+
+                            for ( let i = 0; i < transactions.length; i++ ) {
+
+                                let trans_info = document.createElement('pre')
+                                trans_info.innerHTML = transactions[i].user_name + " " + transactions[i].description
+                                trans_info.innerHTML += " on " +  transactions[i].date + " ID: " + transactions[i].transaction_id
+
+                                document.getElementById('transactions').appendChild(trans_info)
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        </script>
+    </body>
+</html>
