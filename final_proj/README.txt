@@ -10,7 +10,7 @@ Install Instructions:
     1. Make sure you have node js installed
         -> This depends on the operating system; thus, I cannot provide instructions for all platforms. (Please refer to the internet)
 
-    2. Open up a terminal window and go to the final_proj directory and type in 'npm install'
+    2. Open up a terminal window and go to the COMP-3005-Final-Project-main/final_proj directory and type in 'npm install'
 
     3. Open PostgresSQL and create a database with the following information:
 
@@ -26,7 +26,7 @@ Install Instructions:
 
 Launch Instructions:
 
-    1. Open up a terminal window and go to the final_proj directory and type in node server.js
+    1. Open up a terminal window and go to the COMP-3005-Final-Project-main/final_proj directory and type in node server.js
 
 
 DEMONSTRATION VIDEO LINK: https://youtu.be/gojjd6QmOI8
