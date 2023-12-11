@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-top: 10px;
+                font-weight:bold;
+            }
+
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div id="pt_sessions"></div>
+
+        <script>
+
+            let deleted = 0
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                requestPTSessions()
+
+            })
+
+            function requestPTSessions() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_pt_sessions', false)
+                xhr.send( null )
+
+                let pt_sessions = JSON.parse(xhr.response)
+
+                if ( pt_sessions.file_name !== undefined ) {
+
+                    window.location = pt_sessions.file_name
+
+                } else {
+
+                    if ( pt_sessions.pt_sessions.length === 0 ) {
+
+                        let display_no_pt_sessions = document.createElement('pre')
+
+                        display_no_pt_sessions.innerHTML = "You do not have any personal training sessions booked currently."
+                        document.getElementById('pt_sessions').appendChild(display_no_pt_sessions)
+
+                    } else {
+
+                        displayPTSessions(pt_sessions.pt_sessions)
+
+                    }
+
+                }
+
+            }
+
+            function displayPTSessions(pt_sessions) {
+
+                for ( let i = 0; i < pt_sessions.length; i++ ) {
+
+                    let pt_info = document.createElement('pre')
+                    const cancel_pt_btn = document.createElement('button')
+
+                    let pt_session = pt_sessions[i]
+                    pt_info.innerHTML = "\n\nSession with " + pt_session.trainer_name + " (" + pt_session.trainer_id
+                    pt_info.innerHTML += ") on " + pt_session.pt_date + " from " + pt_session.start_time + " to "
+                    pt_info.innerHTML += pt_session.end_time + "\n\n"
+
+                    cancel_pt_btn.textContent = "Cancel"
+
+                    document.getElementById('pt_sessions').appendChild(pt_info)
+                    document.getElementById('pt_sessions').appendChild(cancel_pt_btn)
+
+
+                    cancel_pt_btn.addEventListener('click', function cancelPTSession() {
+
+                        let session_id = pt_session.session_id
+            
+                        fetch('/cancel_pt_session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify( { 'session_id': session_id } )
+                        })
+                        .then(function(response) {
+
+                            return response.json()
+
+                        })
+                        .then((data) => {
+
+                            if ( data.file_name !== undefined ) {
+
+                                window.location = data.file_name
+
+                            } else {
+
+                                if ( data.deleted === true ) {
+
+                                    alert("Personal Training Session deleted successfully!")
+                                    pt_info.style.display = 'none'
+                                    cancel_pt_btn.style.display = 'none'
+                                    deleted += 1
+
+                                    if ( pt_sessions.length === deleted ) {
+
+                                        let display_no_pt_sessions = document.createElement('pre')
+
+                                        display_no_pt_sessions.innerHTML = "You do not have any personal training sessions booked currently."
+                                        document.getElementById('pt_sessions').appendChild(display_no_pt_sessions)
+
+                                    }
+
+                                }
+
+                            }
+
+                        })
+                        .catch((error) => {
+                            session_id = ''
+                            console.log('Error:', error)
+                        })
+
+                    })
+
+                }
+
+            }
+
+        </script>
+    </body>
+</html>

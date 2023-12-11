@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+
+            pre {
+
+                font-weight: bold;
+                font-size: 16px;
+
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <div id="schedule">
+        </div>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //Request goals
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_trainer_schedule', false)
+                xhr.send( null )
+
+                let schedule = JSON.parse(xhr.response)
+
+                if ( schedule.file_name !== undefined ) {
+
+                    window.location = schedule.file_name
+
+                } else {
+
+                    if ( schedule.schedule.length === 0 ) {
+
+                        let no_appointment_message = document.createElement('pre')
+
+                        no_appointment_message.innerHTML = "You do not have any classes or personal training sessions."
+                        document.getElementById('schedule').appendChild(no_appointment_message)
+
+                    } else {
+
+                        displaySchedule(schedule.schedule)
+
+                    }
+
+                }
+
+            })
+
+            function displaySchedule(schedule) {
+
+                for ( let i = 0; i < schedule.length; i++ ) {
+
+                    let appt_info = document.createElement('pre')
+
+                    let appt = schedule[i]
+
+                    if ( appt.pt_date === undefined ) {
+
+                        appt_info.innerHTML = "You have a class on " + appt.class_date + " from " + appt.start_time + " to " + appt.end_time
+
+                    } else {
+
+                        appt_info.innerHTML = "You have a personal training session on " + appt.pt_date + " from " + appt.start_time + " to " + appt.end_time
+
+                    }
+
+                    document.getElementById('schedule').appendChild(appt_info)
+
+                }
+
+
+            }
+
+
+        </script>
+    </body>
+</html>

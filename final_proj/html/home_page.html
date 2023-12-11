@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-right: 20px;
+                margin-top: 40px;
+                margin-left: 210px;
+                font-weight:bold;
+            }
+
+            #book_pt_session, #book_class {
+
+                margin-top: 180px;
+            }
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <form action="/action_page.php">
+
+            <div>
+                <button type="button" id="book_pt_session">Book Personal Training Session</button>
+                <button type="button" id="book_class">Book Class</button>
+            </div>
+
+            <div>
+                <button type="button" id="reschedule_pt_session">Reschedule Personal Training Session</button>
+                <button type="button" id="cancel_pt_session">Cancel Personal Training Session</button>
+            </div>
+
+            <div>
+                <button type="button" id="add_goal_btn">Add Goal</button>
+                <button type="button" id="view_goals_btn">View goals</button>
+            </div>
+
+            <div>
+                <button type="button" id="view_schedule_btn">View schedule</button>
+                <button type="button" id="record_workout_btn">Record Workout</button>
+            </div>
+
+            <div>
+                <button type="button" id="view_workout_btn">View Workout</button>
+                <button type="button" id="leave_feed_back">Leave Feedback</button>
+            </div>
+            <div>
+                <button type="button" id="update_payment_info_btn">Update Payment Information</button>
+                <button type="button" id="add_funds_btn">Add Funds</button>
+            </div>
+            <div>
+                <button type="button" id="reminders">Reminders</button>
+                <button type="button" id="view_monthly_fee_btn">View Next Payment Date</button>
+            </div>
+
+        </form> 
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                //add key handler for the document as a whole, not separate elements.
+                document.getElementById('book_pt_session').addEventListener('click', handleBookPersonalTrainingSession)
+                document.getElementById('book_class').addEventListener('click', handleBookClass)
+                document.getElementById('reschedule_pt_session').addEventListener('click', handleReschedulingPTSessions)
+                document.getElementById('cancel_pt_session').addEventListener('click', handlePTCancellation)
+                document.getElementById('add_goal_btn').addEventListener('click', handleAddingGoal)
+                document.getElementById('view_goals_btn').addEventListener('click', handleViewGoalsBtn)
+                document.getElementById('view_schedule_btn').addEventListener('click', handleViewScheduleBtn)
+                document.getElementById('record_workout_btn').addEventListener('click', handleRecordWorkoutBtn)
+                document.getElementById('view_workout_btn').addEventListener('click', handleViewWorkoutsBtn)
+                document.getElementById('leave_feed_back').addEventListener('click', handleLeaveFeedback)
+                document.getElementById('update_payment_info_btn').addEventListener('click', handleUpdatePaymentInfo)
+                document.getElementById('add_funds_btn').addEventListener('click', handleGetFundsBtn)
+                document.getElementById('reminders').addEventListener('click', handleRemindersBtn)
+                document.getElementById('view_monthly_fee_btn').addEventListener('click', handleMonthlyFeeBtn)
+
+            })
+
+            function handleMonthlyFeeBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_montly_fee_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleRemindersBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_reminders_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+
+            function handleGetFundsBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_user_funds_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleUpdatePaymentInfo() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_payment_update_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleLeaveFeedback() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET','/request_user_feedback_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleViewWorkoutsBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_previous_workouts_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleRecordWorkoutBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/request_record_workout_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleViewScheduleBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_schedule_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleViewGoalsBtn() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_goal_viewing_page', false)
+                xhr.send(null)
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleAddingGoal() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_goal_setting_page', false)
+                xhr.send(null)
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handlePTCancellation() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_pt_cancellation_page', false)
+                xhr.send( null )
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleReschedulingPTSessions() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/get_scheduling_page', false)
+                xhr.send(null)
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleBookClass() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/book_classes', false)
+                xhr.send(null)
+
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleBookPersonalTrainingSession() {
+
+                let xhr = new XMLHttpRequest()
+
+                xhr.open('GET', '/book_pt_page', false)
+                xhr.send( null )
+                let file = JSON.parse(xhr.response)
+                window.location = file.file_name
+
+            }
+
+            function handleLoginButton() {
+
+                let trainer_id = document.getElementById("trainer_id")
+                let trainer_password = document.getElementById("trainer_password")
+
+                let login_info = {
+                    'trainer_id': trainer_id.value,
+                    'trainer_password': trainer_password.value
+                }
+
+                fetch('/login_trainer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(login_info)
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    window.location = data.file_name
+  
+                })
+                .catch((error) => {
+                    console.log('Error:', error)
+                })
+
+            }
+
+        </script>
+    </body>
+</html>

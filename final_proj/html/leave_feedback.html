@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <style>
+            body {
+
+                background-color: lightgreen;
+
+            }
+
+            button {
+                width:25%;
+                background-color: orange;
+                border: none;
+                font-size: 16px;
+                color: darkgreen;
+                padding: 14px 28px;
+                margin-right: 20px;
+                margin-top: 40px;
+                font-weight:bold;
+            }
+
+            label {
+                font-size: 23px;
+            }
+
+            button:hover {
+
+                background-color: yellow;
+                cursor: pointer;
+
+            }
+
+            textarea {
+
+                width: 35%;
+                padding-right: 30px;
+                padding-top: 11px;
+                padding-bottom:11px;
+                display: inline-block;
+                font-size: 18px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+                color:black;
+                margin-top: 8px;
+                height: 250px;
+
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <label for="feed_back">Leave Feedback:</label><br>
+        <textarea id="feed_back" name="feed_back" rows="4" cols="50" placeholder="Enter feedback for admin..."></textarea><br><br>
+        <button id="send_feedback">Send Feedback</button>
+
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                document.getElementById('send_feedback').addEventListener('click', sendFeedback)
+
+            })
+
+            function sendFeedback(){
+
+                let feedback = { 'feedback': document.getElementById('feed_back').value }
+
+                fetch('/add_feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify( feedback )
+                })
+                .then(function(response) {
+
+                    return response.json()
+
+                })
+                .then((data) => {
+
+                    if ( data.file_name !== undefined ) {
+
+                        window.location = data.file_name
+
+                    } else {
+
+                        if ( data.added === true ) {
+
+                            alert("Feedback given to the admin")
+
+                        } else {
+
+                            alert("There was an error in sending feedback.")
+
+                        }
+
+                        document.getElementById('feed_back').value = ''
+
+                    }
+
+                })
+                .catch((error) => {
+
+                    console.log('Error:', error)
+
+                })
+
+            }
+
+        </script>
+    </body>
+</html>
